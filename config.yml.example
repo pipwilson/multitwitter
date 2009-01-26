@@ -1,0 +1,6 @@
+--- 
+allowed: 
+- user1@xmpp.org
+- user2@xmpp.org
+jid: bot@xmpp.org
+pass: bot_password
