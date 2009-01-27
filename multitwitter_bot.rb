@@ -5,7 +5,7 @@ require 'rubygems'
 require 'xmpp4r-simple'
 require 'pp'
 
-class TwitterpatedBot
+class MultitwitterBot
   def initialize(config, logger=nil)
     @jid      = config['jid']
     @password = config['pass']

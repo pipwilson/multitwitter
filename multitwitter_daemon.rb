@@ -1,13 +1,13 @@
 require 'rubygems'
 require 'yaml'
 require 'daemons'
-require 'twitterpated_bot'
+require 'multitwitter_bot'
 require 'logger'
 require 'pp'
 
-class TwitterpatedDaemon
+class MultitwitterDaemon
   def initialize
-    @bot = TwitterpatedBot.new(config)
+    @bot = MultitwitterBot.new(config)
   end
 
   def start
@@ -30,7 +30,7 @@ class TwitterpatedDaemon
   end
   
   def proc_name
-    "TwitterpatedDaemon - #{@config['jid']}"
+    "MultitwitterDaemon - #{@config['jid']}"
   end
 end
 
@@ -40,6 +40,6 @@ options = {
   :log_output => true
 }
 
-daemon = TwitterpatedDaemon.new()
+daemon = MultitwitterDaemon.new()
 Daemons.run_proc(daemon.proc_name, options) { daemon.start }
 
