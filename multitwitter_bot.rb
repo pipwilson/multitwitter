@@ -3,7 +3,7 @@ require 'net/http'
 
 require 'rubygems'
 require 'xmpp4r-simple'
-require 'pp'
+#require 'pp' # pretty printing
 
 class MultitwitterBot
   def initialize(config, logger=nil)
