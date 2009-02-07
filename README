@@ -6,3 +6,5 @@ bot.
 
 Code is based on twitterpated http://code.google.com/p/twitterpated/ by 
 Kellan.
+
+This code does *not* run on Windows due to the use of the 'daemons' gem.
