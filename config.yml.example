@@ -4,3 +4,5 @@ allowed:
 - user2@xmpp.org
 jid: bot@xmpp.org
 pass: bot_password
+twitter_username: username 
+twitter_password: password
