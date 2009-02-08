@@ -39,16 +39,22 @@ class MultitwitterBot
     update_status(message.body)
   end
   
-  def update_status(status, format = 'json')
-    return "status must been less than 160 characters." if status.length > 160
-    return "status must have something in it..." if status.length < 1
+  def update_status(status)
+    unless status.length > 1 && status.length < 140
+      return "Status message must be between 1 and 140 characters long"
+    end
     
-    api_url = 'http://twitter.com/statuses/update.' + format
+    api_url = 'http://twitter.com/statuses/update.json
+
     url = URI.parse(api_url)
     req = Net::HTTP::Post.new(url.path)
+
     req.basic_auth(@tusername, @tpassword)
-    req.set_form_data({ 'status'=> status }, ';')
-    res = Net::HTTP.new(url.host, url.port).start {|http| http.request(req) }
+    req.set_form_data( {'status'=> status}, ';' )
+
+    res = Net::HTTP.new(url.host, url.port).start do |http|
+      http.request(req) 
+    end
     return res
   end
 
