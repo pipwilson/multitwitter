@@ -1,18 +1,22 @@
 require 'cgi'
 require 'net/http'
+require "logger"
 
 require 'rubygems'
 require 'xmpp4r-simple'
-#require 'pp' # pretty printing
 
 class MultitwitterBot
   def initialize(config, logger=nil)
     @jid      = config['jid']
-    @password = config['pass']
+    @jpassword = config['pass']
     @allowed  = config['allowed']
-    @logger   = logger
+    @tusername = config['twitter_username']
+    @tpassword  = config['twitter_password']
+    @logger   = Logger.new('multitwitter.log')
+    jabber.accept_subscriptions = false
+    checkroster
   end
-  
+
   def run
     jabber.received_messages.each do |m|
       next unless allowed?(m)
@@ -21,47 +25,43 @@ class MultitwitterBot
   end  
   
   private
-  
-  def twitter(mesg)
-    # send message to twitter using API here
-    # jabber.deliver('twitter@twitter.com', mesg)
-    log("published #{mesg} from #{sent_by(mesg)}")
+
+  def checkroster
+    # add the allowed users to bot's roster
+    # this means people won't have to add it.
+    # really needs code to check roster list against @allowed.
+    @allowed.each do |user|
+      jabber.add(user)
+    end
+  end  
+
+  def twitter(message)
+    update_status(message.body)
   end
   
-  def allowed?(mesg)
-    sender = sent_by(mesg)
+  def update_status(status, format = 'json')
+    return "status must been less than 160 characters." if status.length > 160
+    return "status must have something in it..." if status.length < 1
+    
+    api_url = 'http://twitter.com/statuses/update.' + format
+    url = URI.parse(api_url)
+    req = Net::HTTP::Post.new(url.path)
+    req.basic_auth(@tusername, @tpassword)
+    req.set_form_data({ 'status'=> status }, ';')
+    res = Net::HTTP.new(url.host, url.port).start {|http| http.request(req) }
+    return res
+  end
+
+  def allowed?(message)
+    sender = sent_by(message)
     return true if sender and @allowed.include?(sender)
   end
   
-  def direct_messages
-    jabber.received_messages.select {|mesg| direct?(mesg) }
+  def sent_by(message)
+    #return message.from // returns a JID object, not a string
+    return message.attributes['from'].split('/')[0]    
   end
-  
-  def original_message(mesg)
-    sender = sent_by(mesg)
-    o = mesg.body.gsub("direct from #{sender}: ", '')
-    o = o.gsub("(reply? send: d #{sender} hi.)", '')
-    return o
-  end
-  
-  def sent_by(mesg)
-    if (screen_name_element = mesg.elements['//screen_name'])
-      sender = screen_name_element.text
-      return sender
-    else
-      return false
-    end
-  end
-  
-  def direct?(mesg)
-    mesg.body =~ /direct from (\w+)/
-    if($1)
-      return true
-    else
-      return false
-    end
-  end
-  
+
   def log(str, severity=:info)
     if @logger
       @logger.send(severity, str)
@@ -74,7 +74,7 @@ class MultitwitterBot
     begin
       unless @jabber
         log("connecting....")
-        @jabber = Jabber::Simple.new(@jid, @password, :chat, "Open for Business.")
+        @jabber = Jabber::Simple.new(@jid, @jpassword, :chat, "Open for Business.")
         log("connected as #{@jid}")
       end  
     rescue => e
@@ -87,3 +87,11 @@ class MultitwitterBot
   
 end
 
+config = YAML.load(File.read('config.yml'))
+
+bot = MultitwitterBot.new(config)
+
+loop do
+  bot.run
+  sleep 5
+end
