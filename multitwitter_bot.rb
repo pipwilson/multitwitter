@@ -13,12 +13,13 @@ class MultitwitterBot
     @tusername = config['twitter_username']
     @tpassword  = config['twitter_password']
     @logger   = Logger.new('multitwitter.log')
-    jabber.accept_subscriptions = false
+    jabber.accept_subscriptions = true
     checkroster
   end
-
+  
   def run
     jabber.received_messages.each do |m|
+      # silently ignore people not on our "allowed" list
       next unless allowed?(m)
       twitter(m)
     end
@@ -30,6 +31,7 @@ class MultitwitterBot
     # add the allowed users to bot's roster
     # this means people won't have to add it.
     # really needs code to check roster list against @allowed.
+    # also, doesn't work :) TODO
     @allowed.each do |user|
       jabber.add(user)
     end
@@ -44,7 +46,7 @@ class MultitwitterBot
       return "Status message must be between 1 and 140 characters long"
     end
     
-    api_url = 'http://twitter.com/statuses/update.json
+    api_url = 'http://twitter.com/statuses/update.json'
 
     url = URI.parse(api_url)
     req = Net::HTTP::Post.new(url.path)
@@ -93,6 +95,7 @@ class MultitwitterBot
   
 end
 
+=begin
 config = YAML.load(File.read('config.yml'))
 
 bot = MultitwitterBot.new(config)
@@ -101,3 +104,4 @@ loop do
   bot.run
   sleep 5
 end
+=end
