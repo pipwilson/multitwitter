@@ -90,6 +90,7 @@ class MultitwitterBot
       sleep 60
       retry
     end
+    @jabber.status(nil, "Available")
     @jabber
   end
   
